@@ -1,16 +1,32 @@
-from flask import Flask, request, jsonify
+import time
+from oanda import get_candles
+from strategy import place_trade
 
-app = Flask(__name__)
+INSTRUMENT = "XAU_USD"
+TIMEFRAME = 2 * 60  # 2 minutes
 
-@app.route('/')
-def home():
-    return 'TradingView Webhook Bot is live!'
+def determine_signal(candles):
+    if len(candles) < 2:
+        return None
+    prev = candles[-2]
+    curr = candles[-1]
+    if prev["close"] < prev["open"] and curr["close"] > curr["open"]:
+        return "BUY"
+    elif prev["close"] > prev["open"] and curr["close"] < curr["open"]:
+        return "SELL"
+    return None
 
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    data = request.json
-    print("Received webhook data:", data)
-    return jsonify({'status': 'success', 'message': 'Webhook received!'})
+def run_bot():
+    print("🚀 Bot running...")
+    while True:
+        candles = get_candles(INSTRUMENT)
+        signal = determine_signal(candles)
+        if signal:
+            print(f"📢 Signal detected: {signal}")
+            place_trade(INSTRUMENT, signal)
+        else:
+            print("⏳ No signal.")
+        time.sleep(TIMEFRAME)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+if __name__ == "__main__":
+    run_bot()
