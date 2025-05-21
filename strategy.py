@@ -16,11 +16,11 @@ def place_trade(instrument, signal):
     if signal == "BUY":
         sl = entry - atr
         tp = entry + atr * RISK_REWARD_RATIO
-        units = 100
+        units = 10000
     elif signal == "SELL":
         sl = entry + atr
         tp = entry - atr * RISK_REWARD_RATIO
-        units = -100
+        units = -10000
     else:
         return
 
